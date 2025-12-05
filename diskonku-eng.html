@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DiskonKu Prototype (EN)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+    --wine-main: #cf230e;   /* Primary */
+    --wine-dark: #9a1a0b;   /* Hover / shadow depth */
+    --blush-bg: #f5ede1;    /* Main app background */
+    --card-bg: #FFFFFF;     /* Keep cards white for readability */
+
+    --text-main: #2A0E10;   /* High contrast for UX */
+    --text-muted: #5A3A3C;
+
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Poppins",
+        sans-serif;
+    }
+
+    body {
+      background: var(--blush-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* iPhone 13 Pro Max-ish frame */
+    .app {
+      width: 100%;
+      max-width: 428px;
+      height: 100vh;
+      max-height: 926px;
+      background: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    @media (max-height: 880px) {
+      .app {
+        height: 90vh;
+        max-height: 880px;
+      }
+    }
+
+    .screen {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Toast */
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 80px;
+      transform: translateX(-50%);
+      background: var(--wine-main);
+      color: var(--blush-bg);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -4px);
+    }
+
+    /* Compact hero on Home */
+    .hero-banner {
+      background: linear-gradient(135deg, var(--wine-dark), var(--wine-main));
+      color: #ffffff;
+      border-radius: var(--border-radius-lg);
+      padding: 22px 20px 32px;
+      margin-bottom: 18px;
+      box-shadow: 0 14px 34px rgba(207, 35, 14, 0.38);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: var(--border-radius-lg);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+    }
+
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 11px;
+    }
+
+    .hero-location {
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hero-icons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hero-icon-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .hero-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-tagline {
+      font-size: 12px;
+      opacity: 0.95;
+      max-width: 280px;
+      margin-bottom: 12px;
+    }
+
+    .hero-cta {
+      background: #ffffff;
+      border-radius: 999px;
+      border: none;
+      color: var(--wine-main);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(255,255,255,0.25);
+    }
+
+    .hero-cta:hover {
+      background: var(--blush-bg);
+    }
+
+    .hero-cta:active {
+      transform: translateY(1px);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icon-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: #f5ede1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Search bar */
+    .search-bar {
+      background: var(--blush-bg);
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .search-input {
+      border: none;
+      background: transparent;
+      flex: 1;
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0;
+      font-size: 12px;
+      border-radius: 999px;
+      background: var(--blush-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: var(--blush-bg);
+      color: var(--wine-main);
+      font-weight: 600;
+    }
+
+    /* Promo card */
+    .promo-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius-md);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .promo-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .promo-image {
+      height: 120px;
+      background: linear-gradient(135deg, var(--wine-dark), var(--wine-main));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    .promo-body {
+      padding: 10px 12px 12px;
+    }
+
+    .promo-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .promo-restaurant {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .promo-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--blush-bg);
+      color: var(--wine-main);
+      margin-right: 4px;
+      border: 1px solid var(--wine-main);
+    }
+
+    .badge.urgent {
+      background: var(--wine-main);
+      color: #ffffff;
+      border: none;
+    }
+
+    .fire {
+      font-size: 13px;
+    }
+
+    /* Floating button (restaurant only) */
+    .fab {
+      position: absolute;
+      right: 20px;
+      bottom: 76px;
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      background: var(--wine-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 6px 18px rgba(207, 35, 14, 0.35);
+      cursor: pointer;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      height: 60px;
+      border-top: 1px solid #f0e0ec;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #ffffff;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      gap: 2px;
+    }
+
+    .nav-item span.icon {
+      font-size: 18px;
+    }
+
+    .nav-item.active {
+      color: var(--wine-main);
+      font-weight: 600;
+    }
+
+    /* Restaurant screen */
+    .hero-image {
+      height: 160px;
+      border-radius: var(--border-radius-md);
+      background: linear-gradient(135deg, var(--wine-dark), var(--wine-main));
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 10px 0 6px;
+      color: var(--text-main);
+    }
+
+    .queue-estimate {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .secondary-btn {
+      border-radius: 999px;
+      border: 1px solid #e0d7c8;
+      background: #f5ede1;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--wine-main);
+      cursor: pointer;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--wine-main), var(--wine-dark));
+      border: none;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(207, 35, 14, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .primary-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 12px rgba(207, 35, 14, 0.4);
+    }
+
+    /* Upload screen */
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #f0d3ea;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .helper-text {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f5ede1;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .pill.active {
+      background: var(--blush-bg);
+      color: var(--wine-main);
+      font-weight: 600;
+    }
+
+    /* Profile */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff6bb3, #ff2e7e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .profile-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .profile-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .profile-section-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius-md);
+      padding: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
+      font-size: 13px;
+    }
+
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 12px;
+    }
+
+    .logout {
+      color: #ff1744;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+
+    .role-switch {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: #f7f1f7;
+      margin-bottom: 6px;
+    }
+
+    .role-pill {
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .role-pill.active {
+      background: var(--blush-bg);
+      color: var(--wine-main);
+      font-weight: 600;
+    }
+
+    /* Queue screen */
+    .queue-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius-md);
+      padding: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .queue-position {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--wine-main);
+      margin-right: 8px;
+    }
+
+    .queue-top-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--blush-bg);
+      color: var(--wine-main);
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+
+    /* Dashboard */
+    .dashboard-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .dash-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius-md);
+      padding: 10px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+    }
+
+    .dash-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .dash-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .dash-metric-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .feedback-item {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed #e0d7c8;
+    }
+
+    .badge-green {
+      background: #e5f9ed;
+      color: #1b8a4b;
+    }
+
+    .badge-orange {
+      background: #fff3df;
+      color: #e8832f;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Toast -->
+    <div id="toast" class="toast">🎉 Promo uploaded successfully!</div>
+
+    <!-- HOME SCREEN (Customer & Restaurant both can see) -->
+    <div id="screen-home" class="screen active">
+      <!-- Hero -->
+      <div class="hero-banner">
+        <div class="hero-top-row">
+          <div class="hero-location">📍 Jakarta ▾</div>
+          <div class="hero-icons">
+            <div class="hero-icon-circle">🔔</div>
+          </div>
+        </div>
+        <div class="hero-title">DiskonKu</div>
+        <div class="hero-tagline">
+          Verified deals straight from restaurants. No scams, no random unverified posts.
+        </div>
+        <button class="hero-cta">
+          Browse Deals ✨
+        </button>
+      </div>
+
+      <!-- Discovery header -->
+      <div class="header">
+        <div>
+          <div class="header-title">Discovery</div>
+          <div class="header-sub">Hot deals around Jakarta today</div>
+        </div>
+        <div class="header-right">
+          <div class="icon-circle">🏠</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <span>🔍</span>
+        <input
+          class="search-input"
+          type="text"
+          placeholder="What deal are you looking for today?"
+          oninput="filterPromos(this.value)"
+        />
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" id="tab-popular">⭐ Popular</div>
+        <div class="tab" id="tab-latest">🆕 Latest</div>
+        <div class="tab" id="tab-near">📍 Near Me</div>
+      </div>
+
+      <div id="promo-list"></div>
+    </div>
+
+    <!-- RESTAURANT SCREEN -->
+    <div id="screen-restaurant" class="screen">
+      <button onclick="showScreen('home')" class="secondary-btn" style="margin-bottom:8px;">← Back</button>
+      <div class="hero-image">
+        Sushi Nyaman – Best value deals in Senopati, Jakarta
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="section-title">Sushi Nyaman</div>
+          <div style="font-size:12px;color:#777;">⭐ 4.8 · Japanese · Senopati, Jakarta</div>
+        </div>
+        <button class="secondary-btn">❤ Save</button>
+      </div>
+
+      <div class="section-title">Best Deal Today</div>
+      <div class="promo-card" style="margin-bottom:10px;">
+        <div class="promo-body">
+          <div class="promo-title">50% Off All You Can Eat</div>
+          <div class="promo-restaurant">Every Monday–Thursday, 2 PM–5 PM</div>
+          <div class="promo-meta">
+            <div>
+              <span class="badge">20% Cashback</span>
+              <span class="badge">BCA / BNI</span>
+            </div>
+            <div style="font-size:11px;">⏳ Ends in 3 days</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Online Queue</div>
+      <div style="font-size:12px;color:#777;">Estimated waiting time right now:</div>
+      <div class="queue-estimate">± 15 minutes · 6 groups ahead of you</div>
+      <div style="margin-top:10px;">
+        <button class="primary-btn" onclick="joinQueue()">
+          Join Queue
+          <span>🍣</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- QUEUE SCREEN (Customer: my queue) -->
+    <div id="screen-queue" class="screen">
+      <div class="header">
+        <div>
+          <div class="header-title">My Queue</div>
+          <div class="header-sub">Check your active queues</div>
+        </div>
+      </div>
+
+      <div id="queue-empty">
+        <div style="font-size:50px;margin-bottom:10px;">😴</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">No active queue</div>
+        <div style="font-size:12px;color:#777;margin-bottom:10px;">
+          You haven’t joined any restaurant queue in Jakarta yet. Explore some deals first on Home~
+        </div>
+        <button class="primary-btn" onclick="showScreen('home')">
+          Browse Deals
+        </button>
+      </div>
+
+      <div id="queue-active" style="display:none;">
+        <div style="font-size:13px;color:#777;margin-bottom:6px;">Active queue:</div>
+        <div class="queue-card">
+          <div class="queue-top-row">
+            <div class="queue-position" id="queue-number">#7</div>
+            <div>
+              <div style="font-weight:600;">Sushi Nyaman</div>
+              <div style="font-size:12px;color:#777;">Senopati, Jakarta</div>
+              <div class="tag">Online queue</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#777;margin-bottom:6px;">
+            Estimated waiting time: <span id="queue-time">± 15 minutes</span>
+          </div>
+          <button class="secondary-btn" onclick="cancelQueue()">Cancel queue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TENANT DASHBOARD SCREEN -->
+    <div id="screen-dashboard" class="screen">
+      <div class="header">
+        <div>
+          <div class="header-title">Restaurant Dashboard</div>
+          <div class="header-sub">Manage your restaurant’s deals & queue</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Promo performance -->
+        <div class="dash-card">
+          <div class="dash-title">Deal Performance</div>
+          <div class="dash-label">Sushi Nyaman – 50% Off All You Can Eat</div>
+          <div class="dash-metric-row">
+            <span>👀 Views</span><span>1.8k</span>
+          </div>
+          <div class="dash-metric-row">
+            <span>❤️ Saved</span><span>640</span>
+          </div>
+          <div class="dash-metric-row">
+            <span>🧾 Queues created</span><span>132</span>
+          </div>
+        </div>
+
+        <!-- Promo expiry -->
+        <div class="dash-card">
+          <div class="dash-title">Deals Ending Soon</div>
+          <div class="dash-label">50% Off All You Can Eat</div>
+          <div class="dash-metric-row">
+            <span>⏳ Ends in</span>
+            <span><span class="badge badge-orange">3 days</span></span>
+          </div>
+          <div class="dash-label" style="margin-top:6px;">30% Off Sushi Platter</div>
+          <div class="dash-metric-row">
+            <span>⏳ Ends in</span>
+            <span>7 days</span>
+          </div>
+        </div>
+
+        <!-- Active queue list -->
+        <div class="dash-card">
+          <div class="dash-title">Online Queue Today</div>
+          <div class="dash-label">Sushi Nyaman – Senopati</div>
+          <div class="dash-metric-row">
+            <span>Groups in queue</span><span>6</span>
+          </div>
+          <div class="dash-metric-row">
+            <span>Estimated wait</span><span>± 15 minutes</span>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:#777;">
+            Example: <span class="badge">#21 – Devan (4 people)</span>
+          </div>
+        </div>
+
+        <!-- Resto info edit -->
+        <div class="dash-card">
+          <div class="dash-title">Restaurant Info</div>
+          <div class="dash-label">Restaurant Name</div>
+          <div style="font-size:12px;margin-bottom:6px;">Sushi Nyaman – Senopati</div>
+          <div class="dash-label">Opening Hours</div>
+          <div style="font-size:12px;margin-bottom:6px;">11:00 – 22:00</div>
+          <div class="dash-label">Notes</div>
+          <div style="font-size:12px;margin-bottom:6px;">Online queue is for dine-in only.</div>
+          <button class="secondary-btn" style="margin-top:4px;">Edit info (dummy)</button>
+        </div>
+
+        <!-- Customer feedback -->
+        <div class="dash-card">
+          <div class="dash-title">Customer Feedback</div>
+          <div class="feedback-item">
+            <div style="font-size:12px;">“The online queue helps a lot, I don’t need to wait in front of the restaurant.”</div>
+            <div style="font-size:11px;color:#777;margin-top:2px;">— User: @bobaaddict</div>
+          </div>
+          <div class="feedback-item">
+            <div style="font-size:12px;">“Please make the promo time info clearer, I was a bit confused earlier.”</div>
+            <div style="font-size:11px;color:#777;margin-top:2px;">— User: @discount_hunter</div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="dash-card">
+          <div class="dash-title">Notifications</div>
+          <div class="dash-label">Deals with low engagement</div>
+          <div style="font-size:12px;margin-top:2px;">
+            <span class="badge badge-orange">Needs attention</span> 15% Off Lunch Set only got 40 views this week.
+          </div>
+          <div style="font-size:11px;color:#777;margin-top:6px;">
+            Suggestion: adjust the deal title or add extra benefits (e.g. free drink).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD SCREEN (Restaurant only) -->
+    <div id="screen-upload" class="screen">
+      <div class="header">
+        <div>
+          <div class="header-title">Upload Restaurant Deal</div>
+          <div class="header-sub">For verified restaurant accounts only ✅</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Deal Title</div>
+        <input id="promo-title-input" class="form-input" type="text" placeholder="Example: 30% Off All Menu" />
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Restaurant Name</div>
+        <input id="promo-resto-input" class="form-input" type="text" placeholder="Restaurant / tenant name" />
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Deal Type</div>
+        <div class="pill-row" id="promo-type-pills">
+          <div class="pill active" data-type="Discount">Discount</div>
+          <div class="pill" data-type="Cashback">Cashback</div>
+          <div class="pill" data-type="Buy 1 Get 1">Buy 1 Get 1</div>
+          <div class="pill" data-type="Happy Hour">Happy Hour</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Valid Until</div>
+        <input id="promo-date-input" class="form-input" type="date" />
+        <div class="helper-text">If you’re not sure, you can put an estimate.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Payment Methods</div>
+        <input id="promo-payment-input" class="form-input" type="text" placeholder="Example: BCA, GoPay, Dana" />
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Terms & Conditions</div>
+        <textarea
+          id="promo-tnc-input"
+          class="form-textarea"
+          placeholder="Example: Min. purchase IDR 100k, dine-in only."
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Promo Image (optional)</div>
+        <div class="form-input" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span style="font-size:12px;color:#777;">Upload image (dummy)</span>
+          <span>📎</span>
+        </div>
+        <div class="helper-text">In this prototype, image upload is not actually functional.</div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button class="primary-btn" style="width:100%;justify-content:center;" onclick="submitPromo()">
+          Upload Deal 🚀
+        </button>
+      </div>
+    </div>
+
+    <!-- PROFILE SCREEN -->
+    <div id="screen-profile" class="screen">
+      <div class="header">
+        <div class="header-title">Profile</div>
+      </div>
+
+      <div class="profile-header">
+        <div class="avatar">N</div>
+        <div>
+          <div class="profile-name">Natalie / Discount Hunter</div>
+          <div class="profile-sub">Member since 2025 · Jakarta</div>
+        </div>
+      </div>
+
+      <div class="profile-section-card">
+        <div class="dash-label">Account mode</div>
+        <div class="role-switch">
+          <div class="role-pill active" data-role="customer">Customer</div>
+          <div class="role-pill" data-role="restoran">Restaurant</div>
+        </div>
+        <!-- Explanation text removed as requested -->
+      </div>
+
+      <div class="profile-section-card">
+        <div style="font-weight:600;margin-bottom:4px;">Quick Stats</div>
+        <div class="profile-row">
+          <span>Restaurants you’ve queued for</span>
+          <span id="profile-queue-count">0</span>
+        </div>
+      </div>
+
+      <div class="profile-section-card">
+        <div style="font-weight:600;margin-bottom:6px;">My Favorites ❤️</div>
+        <div style="font-size:12px;color:#777;margin-bottom:8px;">
+          Deals or restaurants you’ve saved
+        </div>
+
+        <!-- Static example favorite -->
+        <div class="queue-card" style="cursor:pointer;">
+          <div class="queue-top-row" style="margin-bottom:4px;">
+            <div style="font-weight:600;">Sushi Nyaman</div>
+          </div>
+          <div style="font-size:12px;color:#777;">Senopati, Jakarta</div>
+          <div class="tag" style="margin-top:6px;">❤️ Favorite</div>
+        </div>
+      </div>
+
+      <div class="logout">Log out (dummy)</div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <!-- Customer nav -->
+      <div class="nav-item active" data-target="home" data-roles="customer">
+        <span class="icon">🏠</span>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" data-target="queue" data-roles="customer">
+        <span class="icon">🧾</span>
+        <span>Queue</span>
+      </div>
+
+      <!-- Restaurant nav -->
+      <div class="nav-item hidden" data-target="dashboard" data-roles="restoran">
+        <span class="icon">📊</span>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item hidden" data-target="upload" data-roles="restoran">
+        <span class="icon">➕</span>
+        <span>Upload</span>
+      </div>
+
+      <!-- Shared -->
+      <div class="nav-item" data-target="profile" data-roles="customer,restoran">
+        <span class="icon">👤</span>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <!-- Floating Action Button (restaurant only) -->
+    <div class="fab hidden" id="fab-upload" onclick="restoranUpload()">➕</div>
+  </div>
+
+  <script>
+    // ----- App State -----
+    const screens = {
+      home: document.getElementById("screen-home"),
+      restaurant: document.getElementById("screen-restaurant"),
+      queue: document.getElementById("screen-queue"),
+      dashboard: document.getElementById("screen-dashboard"),
+      upload: document.getElementById("screen-upload"),
+      profile: document.getElementById("screen-profile"),
+    };
+
+    const promoListEl = document.getElementById("promo-list");
+    const navItems = document.querySelectorAll(".nav-item");
+    const toastEl = document.getElementById("toast");
+    const queueEmptyEl = document.getElementById("queue-empty");
+    const queueActiveEl = document.getElementById("queue-active");
+    const profileQueueCountEl = document.getElementById("profile-queue-count");
+    const rolePills = document.querySelectorAll(".role-pill");
+    const fabUpload = document.getElementById("fab-upload");
+
+    let uploadCount = 0;
+    let queueJoined = false;
+    let currentRole = "customer"; // "customer" or "restoran"
+
+    let promos = [
+      {
+        title: "50% Off All You Can Eat",
+        restaurant: "Sushi Nyaman - Senopati",
+        badges: ["Discount", "20% Cashback", "BCA / BNI"],
+        saved: "1.2k",
+      },
+      {
+        title: "Buy 1 Get 1 Boba",
+        restaurant: "Boba Bahagia - Kelapa Gading",
+        badges: ["Buy 1 Get 1", "GoPay"],
+        saved: "820",
+      },
+      {
+        title: "30% Cashback up to 25K",
+        restaurant: "Ayam Geprek Riang - Tebet",
+        badges: ["Cashback", "OVO", "Dine-in"],
+        saved: "540",
+      },
+      {
+        title: "40% Off Coffee & Pastry",
+        restaurant: "Kopi Santai - SCBD",
+        badges: ["Discount", "QRIS", "All Cards"],
+        saved: "960",
+      },
+      {
+        title: "All Pizza 99K",
+        restaurant: "Pizza Rame - PIK",
+        badges: ["All You Can Eat", "Family Pack"],
+        saved: "730",
+      },
+      {
+        title: "Buffet Korean BBQ 88K",
+        restaurant: "Seoul Grill - Kelapa Gading",
+        badges: ["Discount", "Buffet", "Mandiri"],
+        saved: "1.5k",
+      },
+      {
+        title: "25% Student Discount",
+        restaurant: "Warung Kampus - Depok",
+        badges: ["Student Only", "Cash"],
+        saved: "410",
+      },
+      {
+        title: "Free Dessert Every Monday",
+        restaurant: "Sweet Tooth - Senayan",
+        badges: ["Free Dessert", "Dine-in"],
+        saved: "320",
+      },
+      {
+        title: "Flash Sale: 60% Off Burger Combo",
+        restaurant: "Burger Boom - Kuningan",
+        badges: ["Flash Sale", "ShopeePay"],
+        saved: "1.1k",
+      },
+      {
+        title: "35% Off Sushi Platter",
+        restaurant: "Sushi Nyaman - Senopati",
+        badges: ["Discount", "BNI"],
+        saved: "640",
+      },
+      {
+        title: "30% Cashback up to 40K for Yakiniku Set",
+        restaurant: "Yakiniku Street - PIK",
+        badges: ["Cashback", "OVO"],
+        saved: "520",
+      },
+      {
+        title: "All You Can Eat Dimsum 68K",
+        restaurant: "Dimsum Corner - Pluit",
+        badges: ["All You Can Eat", "Mandiri"],
+        saved: "455",
+      },
+      {
+        title: "Taco Tuesday: All Tacos 50% Off",
+        restaurant: "Taco Time - Senopati",
+        badges: ["Discount", "Tuesday Only"],
+        saved: "640",
+      },
+      {
+        title: "Buy 1 Get 1 Latte after 7 PM",
+        restaurant: "Senja Coffee - Bintaro",
+        badges: ["Buy 1 Get 1", "Night Promo"],
+        saved: "560",
+      },
+      {
+        title: "25% Off All Manual Brew",
+        restaurant: "Daily Grind - Sudirman",
+        badges: ["Discount", "QRIS"],
+        saved: "380",
+      },
+      {
+        title: "Buy 2 Cups, Get 1 Cone Free",
+        restaurant: "Gelato Jalan-jalan - PIK 2",
+        badges: ["Family", "Bundle"],
+        saved: "540",
+      },
+      {
+        title: "30% Off All Matcha Drinks",
+        restaurant: "Matcha Moods - Kota Kasablanka",
+        badges: ["Discount", "QRIS"],
+        saved: "620",
+      },
+      {
+        title: "Ramen Spicy Set 45K",
+        restaurant: "Samurai Ramen - Gandaria",
+        badges: ["Discount", "QRIS"],
+        saved: "710",
+      },
+      {
+        title: "All Day Bento 30% Off",
+        restaurant: "Bento Box Co - Sunter",
+        badges: ["Discount", "E-Wallet"],
+        saved: "480",
+      },
+      {
+        title: "Sushi Day: Buy 2 Get 1",
+        restaurant: "Sakura Uchi - Alam Sutera",
+        badges: ["Buy 2 Get 1", "Dine-in"],
+        saved: "550",
+      },
+      {
+        title: "BBQ Platter Couple Deal",
+        restaurant: "Meat & Grill - Kemang",
+        badges: ["Couple", "Discount"],
+        saved: "690",
+      },
+      {
+        title: "Korean Buffet 95K",
+        restaurant: "Samgyeop House - Fatmawati",
+        badges: ["All You Can Eat", "BRI"],
+        saved: "820",
+      },
+      {
+        title: "Cheese Bomb Burger 50% Off",
+        restaurant: "Cheezy Buns - Kalibata",
+        badges: ["Flash Sale", "GoPay"],
+        saved: "770",
+      },
+      {
+        title: "Family Pizza Package 129K",
+        restaurant: "Pizza Squad - Bekasi",
+        badges: ["Family", "Bundle"],
+        saved: "630",
+      },
+      {
+        title: "Taco Wednesday 40% Off",
+        restaurant: "Casa Taco - Senayan",
+        badges: ["Discount", "Wednesday Only"],
+        saved: "590",
+      },
+      {
+        title: "Buy 1 Get 1 Caramel Latte",
+        restaurant: "Aurora Cafe - Cipete",
+        badges: ["Buy 1 Get 1", "QRIS"],
+        saved: "720",
+      },
+      {
+        title: "Cold Brew Happy Hour",
+        restaurant: "Minimalist Coffee - Gading Serpong",
+        badges: ["Happy Hour", "Night Promo"],
+        saved: "520",
+      },
+      {
+        title: "Free Cookie with Every Drink",
+        restaurant: "Daily Beans - Dharmawangsa",
+        badges: ["Free Dessert", "Dine-in"],
+        saved: "410",
+      },
+      {
+        title: "Ayam Geprek Set 22K",
+        restaurant: "Geprek Ria - Pasar Rebo",
+        badges: ["Budget", "Cash"],
+        saved: "550",
+      },
+      {
+        title: "Jumbo Iced Tea only 5K",
+        restaurant: "Warung Teh Manis - Tanah Abang",
+        badges: ["Budget", "Favorite"],
+        saved: "660",
+      },
+      {
+        title: "Free Boba Topping",
+        restaurant: "Bully Boba - Rawamangun",
+        badges: ["Free Topping", "QRIS"],
+        saved: "540",
+      },
+      {
+        title: "20% Off All Cakes",
+        restaurant: "Sugar Time Bakery - Kelapa Dua",
+        badges: ["Discount", "Dine-in"],
+        saved: "430",
+      },
+      {
+        title: "Ice Cream Fiesta Buy 3 Get 1",
+        restaurant: "Cream Land - Pantai Mutiara",
+        badges: ["Bundle", "Family"],
+        saved: "600",
+      },
+      {
+        title: "8pcs Dimsum only 18K",
+        restaurant: "Dimsum Mini - Jatinegara",
+        badges: ["Budget", "Cash"],
+        saved: "680",
+      },
+      {
+        title: "Sate Ayam Value Set 25K",
+        restaurant: "Sate Barokah - Cilandak",
+        badges: ["Budget", "Favorite"],
+        saved: "740",
+      },
+      {
+        title: "All You Can Eat Dimsum 75K",
+        restaurant: "Dimsum Bahagia - Kelapa Gading",
+        badges: ["All You Can Eat", "BRI"],
+        saved: "530",
+      },
+      {
+        title: "Happy Hour: 50% Off Mocktails",
+        restaurant: "Sky Lounge - Sudirman",
+        badges: ["Happy Hour", "Card Only"],
+        saved: "290",
+      },
+      {
+        title: "Rice Set + Iced Tea 20K",
+        restaurant: "Warung Laper - Mangga Dua",
+        badges: ["Budget", "Cash"],
+        saved: "380",
+      },
+      {
+        title: "20% Off Bento Box",
+        restaurant: "Tokyo Lunch - Slipi",
+        badges: ["Discount", "E-Wallet"],
+        saved: "270",
+      },
+      {
+        title: "30% Off All Menu on Weekends",
+        restaurant: "Resto Family - Bintaro",
+        badges: ["Weekend Only", "Family"],
+        saved: "890",
+      }
+    ];
+
+    // ----- Role handling -----
+    function updateNavForRole() {
+      navItems.forEach((item) => {
+        const roles = (item.getAttribute("data-roles") || "").split(",");
+        if (roles.map((r) => r.trim()).includes(currentRole) || roles.includes("both")) {
+          item.classList.remove("hidden");
+        } else {
+          item.classList.add("hidden");
+          item.classList.remove("active");
+        }
+      });
+
+      // Customer default active: home
+      // Restaurant default active: dashboard
+      if (currentRole === "customer") {
+        setActiveNav("home");
+      } else {
+        setActiveNav("dashboard");
+      }
+
+      // FAB only for restaurant
+      if (currentRole === "restoran") {
+        fabUpload.classList.remove("hidden");
+      } else {
+        fabUpload.classList.add("hidden");
+      }
+    }
+
+    function setRole(role) {
+      currentRole = role;
+
+      // Update pills UI
+      rolePills.forEach((pill) => {
+        if (pill.getAttribute("data-role") === role) {
+          pill.classList.add("active");
+        } else {
+          pill.classList.remove("active");
+        }
+      });
+
+      updateNavForRole();
+
+      // Redirect if in forbidden screen
+      const currentScreenId = Object.keys(screens).find((id) =>
+        screens[id].classList.contains("active")
+      );
+
+      if (currentRole === "customer") {
+        if (["dashboard", "upload"].includes(currentScreenId)) {
+          showScreen("home");
+        }
+      } else {
+        if (currentScreenId === "queue") {
+          showScreen("dashboard");
+        }
+      }
+    }
+
+    rolePills.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        const role = pill.getAttribute("data-role");
+        setRole(role);
+      });
+    });
+
+    // ----- Navigation -----
+    function setActiveScreen(id) {
+      Object.keys(screens).forEach((key) => {
+        screens[key].classList.remove("active");
+      });
+      screens[id].classList.add("active");
+    }
+
+    function setActiveNav(target) {
+      navItems.forEach((item) => {
+        if (item.getAttribute("data-target") === target) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
+    }
+
+    function showScreen(id) {
+      // Guard upload & dashboard for customer
+      if (id === "upload" && currentRole !== "restoran") {
+        showToast("Upload is only available for verified restaurant accounts.");
+        return;
+      }
+      if (id === "dashboard" && currentRole !== "restoran") {
+        showToast("Dashboard is only available for restaurant accounts.");
+        return;
+      }
+
+      setActiveScreen(id);
+
+      if (["home", "queue", "dashboard", "upload", "profile"].includes(id)) {
+        setActiveNav(id);
+      }
+
+      if (id === "home") {
+        renderPromos();
+      }
+    }
+
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+        showScreen(target);
+      });
+    });
+
+    function restoranUpload() {
+      if (currentRole === "restoran") {
+        showScreen("upload");
+      } else {
+        showToast("Upload is only for verified restaurant accounts.");
+      }
+    }
+
+    // ----- Promo rendering -----
+    function renderPromos(filter = "") {
+      promoListEl.innerHTML = "";
+      const query = filter.trim().toLowerCase();
+
+      promos
+        .filter((p) => {
+          if (!query) return true;
+          return (
+            p.title.toLowerCase().includes(query) ||
+            p.restaurant.toLowerCase().includes(query)
+          );
+        })
+        .forEach((promo, index) => {
+          const card = document.createElement("div");
+          card.className = "promo-card";
+          card.onclick = () => {
+            if (promo.restaurant.includes("Sushi Nyaman")) {
+              showScreen("restaurant");
+            }
+          };
+
+          card.innerHTML = `
+            <div class="promo-image">
+              ${promo.restaurant}
+            </div>
+            <div class="promo-body">
+              <div class="promo-title">${promo.title}</div>
+              <div class="promo-restaurant">@ ${promo.restaurant}</div>
+              <div class="promo-meta">
+                <div>
+                  ${promo.badges
+                    .map((b) => `<span class="badge">${b}</span>`)
+                    .join("")}
+                </div>
+                <div class="fire">🔥 ${promo.saved} saved</div>
+              </div>
+            </div>
+          `;
+          promoListEl.appendChild(card);
+        });
+
+      if (!promoListEl.children.length) {
+        const empty = document.createElement("div");
+        empty.style.fontSize = "13px";
+        empty.style.color = "#777";
+        empty.style.marginTop = "16px";
+        empty.innerHTML =
+          "No deals match your search yet. Try another keyword ✨";
+        promoListEl.appendChild(empty);
+      }
+    }
+
+    function filterPromos(value) {
+      renderPromos(value);
+    }
+
+    // ----- Queue logic -----
+    function joinQueue() {
+      queueJoined = true;
+      queueEmptyEl.style.display = "none";
+      queueActiveEl.style.display = "block";
+      profileQueueCountEl.textContent = "1";
+      showToast("✅ You joined the queue at Sushi Nyaman!");
+      showScreen("queue");
+    }
+
+    function cancelQueue() {
+      queueJoined = false;
+      queueEmptyEl.style.display = "block";
+      queueActiveEl.style.display = "none";
+      profileQueueCountEl.textContent = "0";
+      showToast("Your queue has been cancelled.");
+    }
+
+    // ----- Upload promo (restaurant) -----
+    function submitPromo() {
+      if (currentRole !== "restoran") {
+        showToast("Upload is only available for verified restaurant accounts.");
+        return;
+      }
+
+      const title = document.getElementById("promo-title-input").value.trim();
+      const resto = document.getElementById("promo-resto-input").value.trim();
+      const payment = document
+        .getElementById("promo-payment-input")
+        .value.trim();
+
+      if (!title || !resto) {
+        showToast("Please fill at least the deal title & restaurant name ✨");
+        return;
+      }
+
+      const activePill = document.querySelector("#promo-type-pills .pill.active");
+      const type = activePill ? activePill.dataset.type : "Deal";
+
+      const newPromo = {
+        title,
+        restaurant: resto,
+        badges: [type].concat(payment ? [payment] : []),
+        saved: "0",
+      };
+
+      promos.unshift(newPromo);
+      uploadCount++;
+
+      document.getElementById("promo-title-input").value = "";
+      document.getElementById("promo-resto-input").value = "";
+      document.getElementById("promo-payment-input").value = "";
+      document.getElementById("promo-tnc-input").value = "";
+      document.getElementById("promo-date-input").value = "";
+
+      showToast("🎉 Restaurant deal uploaded successfully!");
+      showScreen("home");
+    }
+
+    // Promo type pill selection
+    document.querySelectorAll("#promo-type-pills .pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll("#promo-type-pills .pill").forEach((p) => {
+          p.classList.remove("active");
+        });
+        pill.classList.add("active");
+      });
+    });
+
+    // ----- Toast -----
+    let toastTimeout = null;
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastEl.classList.remove("show");
+      }, 2000);
+    }
+
+    // Initial setup
+    updateNavForRole();
+    renderPromos();
+  </script>
+</body>
+</html>
