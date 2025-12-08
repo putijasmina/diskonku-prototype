@@ -326,6 +326,43 @@
       color: var(--text-muted);
     }
 
+    .promo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .favorite-btn {
+      border: none;
+      background: #f5ede1;
+      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .favorite-btn.active {
+      background: var(--wine-main);
+      color: #ffffff;
+    }
+
+    .promo-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .secondary-btn.small {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+
     .badge {
       display: inline-block;
       font-size: 11px;
@@ -373,6 +410,10 @@
       justify-content: space-around;
       align-items: center;
       background: #ffffff;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
     }
 
     .nav-item {
@@ -528,6 +569,12 @@
       font-weight: 700;
       font-size: 20px;
     }
+
+    .avatar.restaurant-logo {
+      background: var(--wine-main);
+      font-size: 20px;
+    }
+
 
     .profile-name {
       font-size: 16px;
@@ -725,31 +772,39 @@
       <div id="promo-list"></div>
     </div>
 
-    <!-- RESTAURANT SCREEN -->
+        <!-- RESTAURANT / DEAL DETAIL SCREEN -->
     <div id="screen-restaurant" class="screen">
       <button onclick="showScreen('home')" class="secondary-btn" style="margin-bottom:8px;">← Back</button>
-      <div class="hero-image">
+
+      <div class="hero-image" id="restaurant-hero-text">
         Sushi Nyaman – Best value deals in Senopati, Jakarta
       </div>
+
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div class="section-title">Sushi Nyaman</div>
-          <div style="font-size:12px;color:#777;">⭐ 4.8 · Japanese · Senopati, Jakarta</div>
+          <div class="section-title" id="restaurant-name">Sushi Nyaman</div>
+          <div style="font-size:12px;color:#777;" id="restaurant-subtitle">
+            ⭐ 4.8 · Japanese · Senopati, Jakarta
+          </div>
         </div>
-        <button class="secondary-btn">❤ Save</button>
+        <button id="restaurant-save-btn" class="secondary-btn" type="button" onclick="toggleRestaurantFavorite()">
+          ❤ Save
+        </button>
       </div>
 
       <div class="section-title">Best Deal Today</div>
       <div class="promo-card" style="margin-bottom:10px;">
         <div class="promo-body">
-          <div class="promo-title">50% Off All You Can Eat</div>
-          <div class="promo-restaurant">Every Monday–Thursday, 2 PM–5 PM</div>
+          <div class="promo-title" id="restaurant-deal-title">50% Off All You Can Eat</div>
+          <div class="promo-restaurant" id="restaurant-deal-subtitle">
+            Every Monday–Thursday, 2 PM–5 PM
+          </div>
           <div class="promo-meta">
-            <div>
+            <div id="restaurant-deal-badges">
               <span class="badge">20% Cashback</span>
               <span class="badge">BCA / BNI</span>
             </div>
-            <div style="font-size:11px;">⏳ Ends in 3 days</div>
+            <div style="font-size:11px;" id="restaurant-deal-ends">⏳ Ends in 3 days</div>
           </div>
         </div>
       </div>
@@ -764,6 +819,7 @@
         </button>
       </div>
     </div>
+
 
     <!-- QUEUE SCREEN (Customer: my queue) -->
     <div id="screen-queue" class="screen">
@@ -786,21 +842,8 @@
       </div>
 
       <div id="queue-active" style="display:none;">
-        <div style="font-size:13px;color:#777;margin-bottom:6px;">Active queue:</div>
-        <div class="queue-card">
-          <div class="queue-top-row">
-            <div class="queue-position" id="queue-number">#7</div>
-            <div>
-              <div style="font-weight:600;">Sushi Nyaman</div>
-              <div style="font-size:12px;color:#777;">Senopati, Jakarta</div>
-              <div class="tag">Online queue</div>
-            </div>
-          </div>
-          <div style="font-size:12px;color:#777;margin-bottom:6px;">
-            Estimated waiting time: <span id="queue-time">± 15 minutes</span>
-          </div>
-          <button class="secondary-btn" onclick="cancelQueue()">Cancel queue</button>
-        </div>
+        <div style="font-size:13px;color:#777;margin-bottom:6px;">Active queues:</div>
+        <div id="queue-list"></div>
       </div>
     </div>
 
@@ -983,10 +1026,10 @@
           <div class="role-pill active" data-role="customer">Customer</div>
           <div class="role-pill" data-role="restoran">Restaurant</div>
         </div>
-        <!-- Explanation text removed as requested -->
       </div>
 
-      <div class="profile-section-card">
+      <!-- CUSTOMER: quick stats -->
+      <div class="profile-section-card" id="profile-card-stats">
         <div style="font-weight:600;margin-bottom:4px;">Quick Stats</div>
         <div class="profile-row">
           <span>Restaurants you’ve queued for</span>
@@ -994,23 +1037,51 @@
         </div>
       </div>
 
-      <div class="profile-section-card">
-        <div style="font-weight:600;margin-bottom:6px;">My Favorites ❤️</div>
-        <div style="font-size:12px;color:#777;margin-bottom:8px;">
+      <!-- CUSTOMER: My Favorites row -->
+      <div class="profile-section-card" id="profile-card-favorites" onclick="openFavorites()">
+        <div class="profile-row">
+          <span>My Favorites ❤️</span>
+          <span style="font-size:14px;">›</span>
+        </div>
+        <div style="font-size:11px;color:#777;margin-top:4px;">
           Deals or restaurants you’ve saved
         </div>
+      </div>
 
-        <!-- Static example favorite -->
-        <div class="queue-card" style="cursor:pointer;">
-          <div class="queue-top-row" style="margin-bottom:4px;">
-            <div style="font-weight:600;">Sushi Nyaman</div>
-          </div>
-          <div style="font-size:12px;color:#777;">Senopati, Jakarta</div>
-          <div class="tag" style="margin-top:6px;">❤️ Favorite</div>
+      <!-- RESTAURANT: search keywords (hidden by default) -->
+      <div class="profile-section-card" id="profile-card-keywords" style="display:none;">
+        <div style="font-weight:600;margin-bottom:4px;">Search keywords</div>
+        <div style="font-size:12px;color:#777;margin-bottom:6px;">
+          How your restaurant appears when customers search
+        </div>
+        <div class="pill-row" id="profile-keyword-list">
+          <div class="pill">Sushi</div>
+          <div class="pill">Japanese</div>
+          <div class="pill">All You Can Eat</div>
+          <div class="pill">Senopati</div>
         </div>
       </div>
 
       <div class="logout">Log out (dummy)</div>
+    </div>
+
+
+    <!-- FAVORITES SCREEN -->
+    <div id="screen-favorites" class="screen">
+      <button class="secondary-btn" onclick="showScreen('profile')" style="margin-bottom:8px;">
+        ← Back
+      </button>
+
+      <div class="section-title" style="font-size:16px;margin-bottom:4px;">My Favorites ❤️</div>
+      <div style="font-size:12px;color:#777;margin-bottom:8px;">
+        Deals or restaurants you’ve saved
+      </div>
+
+      <div id="favorites-list">
+        <div id="favorites-empty" style="font-size:12px;color:#777;">
+          You haven’t saved any deals yet. Tap the ❤️ on a deal to save it.
+        </div>
+      </div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -1055,20 +1126,73 @@
       dashboard: document.getElementById("screen-dashboard"),
       upload: document.getElementById("screen-upload"),
       profile: document.getElementById("screen-profile"),
+      favorites: document.getElementById("screen-favorites"),
     };
+
 
     const promoListEl = document.getElementById("promo-list");
     const navItems = document.querySelectorAll(".nav-item");
     const toastEl = document.getElementById("toast");
     const queueEmptyEl = document.getElementById("queue-empty");
     const queueActiveEl = document.getElementById("queue-active");
+    const queueListEl = document.getElementById("queue-list");
     const profileQueueCountEl = document.getElementById("profile-queue-count");
     const rolePills = document.querySelectorAll(".role-pill");
     const fabUpload = document.getElementById("fab-upload");
+    const favoritesListEl = document.getElementById("favorites-list");
+    const favoritesEmptyEl = document.getElementById("favorites-empty");
+    const queuePromoTitleEl = document.getElementById("queue-promo-title");
+    const queueRestoNameEl = document.getElementById("queue-resto-name");
+    const queueRestoLocationEl = document.getElementById("queue-resto-location");
+    const profileNameEl = document.querySelector(".profile-name");
+    const profileSubEl = document.querySelector(".profile-sub");
+    const profileStatsCard = document.getElementById("profile-card-stats");
+    const profileFavoritesCard = document.getElementById("profile-card-favorites");
+    const profileKeywordsCard = document.getElementById("profile-card-keywords");
+
+
 
     let uploadCount = 0;
     let queueJoined = false;
     let currentRole = "customer"; // "customer" or "restoran"
+    let favoriteKeys = new Set();
+    let currentQueue = null;
+    let currentPromo = null;
+    let activeQueues = [];
+
+
+    function getPromoKey(p) {
+      return p.title + " | " + p.restaurant;
+    }
+
+    function parseSaved(value) {
+      if (typeof value === "number") return value;
+      if (!value) return 0;
+      let s = String(value).toLowerCase().trim();
+
+      // Handle "1.2k" style
+      if (s.endsWith("k")) {
+        const num = parseFloat(s.slice(0, -1));
+        if (isNaN(num)) return 0;
+        return Math.round(num * 1000);
+      }
+
+      // Fallback: strip non-digits
+      const n = parseInt(s.replace(/\D/g, ""), 10);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatSaved(n) {
+      const num = typeof n === "number" ? n : parseSaved(n);
+      if (num >= 1000) {
+        const val = num / 1000;
+        const fixed = Number.isInteger(val) ? val.toString() : val.toFixed(1);
+        return fixed + "k";
+      }
+      return String(num);
+    }
+
+
 
     let promos = [
       {
@@ -1313,6 +1437,12 @@
       }
     ];
 
+    promos = promos.map((p) => ({
+      ...p,
+      saved: parseSaved(p.saved),
+    }));
+
+
     // ----- Role handling -----
     function updateNavForRole() {
       navItems.forEach((item) => {
@@ -1354,6 +1484,7 @@
       });
 
       updateNavForRole();
+      updateProfileForRole();
 
       // Redirect if in forbidden screen
       const currentScreenId = Object.keys(screens).find((id) =>
@@ -1377,6 +1508,39 @@
         setRole(role);
       });
     });
+
+    function updateProfileForRole() {
+      if (!profileNameEl || !profileSubEl) return;
+      const avatarEl = document.querySelector(".avatar");
+
+      if (currentRole === "restoran") {
+        // Restaurant identity
+        profileNameEl.textContent = "Sushi Nyaman - Senopati";
+        profileSubEl.textContent = "Restaurant account · Jakarta";
+
+        // Switch avatar → Sushi icon in wine red
+        avatarEl.textContent = "🍣";
+        avatarEl.classList.add("restaurant-logo");
+
+        if (profileStatsCard) profileStatsCard.style.display = "none";
+        if (profileFavoritesCard) profileFavoritesCard.style.display = "none";
+        if (profileKeywordsCard) profileKeywordsCard.style.display = "block";
+
+      } else {
+        // Customer identity
+        profileNameEl.textContent = "Natalie / Discount Hunter";
+        profileSubEl.textContent = "Member since 2025 · Jakarta";
+
+        // Switch avatar → "N" styling back
+        avatarEl.textContent = "N";
+        avatarEl.classList.remove("restaurant-logo");
+
+        if (profileStatsCard) profileStatsCard.style.display = "block";
+        if (profileFavoritesCard) profileFavoritesCard.style.display = "block";
+        if (profileKeywordsCard) profileKeywordsCard.style.display = "none";
+      }
+    }
+
 
     // ----- Navigation -----
     function setActiveScreen(id) {
@@ -1438,42 +1602,59 @@
       promoListEl.innerHTML = "";
       const query = filter.trim().toLowerCase();
 
-      promos
-        .filter((p) => {
-          if (!query) return true;
-          return (
-            p.title.toLowerCase().includes(query) ||
-            p.restaurant.toLowerCase().includes(query)
-          );
-        })
-        .forEach((promo, index) => {
-          const card = document.createElement("div");
-          card.className = "promo-card";
-          card.onclick = () => {
-            if (promo.restaurant.includes("Sushi Nyaman")) {
-              showScreen("restaurant");
-            }
-          };
+      const filteredPromos = promos.filter((p) => {
+        if (!query) return true;
+        return (
+          p.title.toLowerCase().includes(query) ||
+          p.restaurant.toLowerCase().includes(query)
+        );
+      });
 
-          card.innerHTML = `
-            <div class="promo-image">
-              ${promo.restaurant}
-            </div>
-            <div class="promo-body">
-              <div class="promo-title">${promo.title}</div>
-              <div class="promo-restaurant">@ ${promo.restaurant}</div>
-              <div class="promo-meta">
-                <div>
-                  ${promo.badges
-                    .map((b) => `<span class="badge">${b}</span>`)
-                    .join("")}
-                </div>
-                <div class="fire">🔥 ${promo.saved} saved</div>
+      filteredPromos.forEach((promo, index) => {
+        const isFav = favoriteKeys.has(getPromoKey(promo));
+
+        const card = document.createElement("div");
+        card.className = "promo-card";
+
+        // tap card => open detail screen
+        card.onclick = () => openPromoDetail(index);
+
+        card.innerHTML = `
+          <div class="promo-image">
+            ${promo.restaurant}
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <div>
+                <div class="promo-title">${promo.title}</div>
+                <div class="promo-restaurant">@ ${promo.restaurant}</div>
               </div>
+              <button class="favorite-btn ${isFav ? "active" : ""}" type="button">
+                ❤
+              </button>
             </div>
-          `;
-          promoListEl.appendChild(card);
-        });
+            <div class="promo-meta">
+              <div>
+                ${promo.badges.map((b) => `<span class="badge">${b}</span>`).join("")}
+              </div>
+              <div class="fire">🔥 ${formatSaved(promo.saved)} saved</div>
+            </div>
+            <div class="promo-actions">
+              <button class="secondary-btn small report-btn" type="button">
+                Report
+              </button>
+            </div>
+          </div>
+        `;
+
+        const favBtn = card.querySelector(".favorite-btn");
+        favBtn.addEventListener("click", (event) => toggleFavorite(event, index));
+
+        const reportBtn = card.querySelector(".report-btn");
+        reportBtn.addEventListener("click", (event) => reportPromo(event, index));
+
+        promoListEl.appendChild(card);
+      });
 
       if (!promoListEl.children.length) {
         const empty = document.createElement("div");
@@ -1486,27 +1667,281 @@
       }
     }
 
-    function filterPromos(value) {
-      renderPromos(value);
+
+function openPromoDetail(index) {
+  const promo = promos[index];
+  currentPromo = promo;
+
+  const [restaurantName, area] = promo.restaurant.split(" - ");
+  const displayName = restaurantName || promo.restaurant;
+  const displayArea = area ? `${area}, Jakarta` : "Jakarta";
+
+  const heroEl = document.getElementById("restaurant-hero-text");
+  const nameEl = document.getElementById("restaurant-name");
+  const subtitleEl = document.getElementById("restaurant-subtitle");
+  const dealTitleEl = document.getElementById("restaurant-deal-title");
+  const dealSubtitleEl = document.getElementById("restaurant-deal-subtitle");
+  const badgesEl = document.getElementById("restaurant-deal-badges");
+  const saveBtn = document.getElementById("restaurant-save-btn");
+
+  if (heroEl) heroEl.textContent = promo.restaurant;
+  if (nameEl) nameEl.textContent = displayName;
+  if (subtitleEl) subtitleEl.textContent = displayArea;
+  if (dealTitleEl) dealTitleEl.textContent = promo.title;
+  if (dealSubtitleEl)
+    dealSubtitleEl.textContent = `Special deal at ${displayName}`;
+
+  if (badgesEl) {
+    badgesEl.innerHTML = promo.badges
+      .map((b) => `<span class="badge">${b}</span>`)
+      .join("");
+  }
+
+  // Save button state
+  const isFav = favoriteKeys.has(getPromoKey(promo));
+  if (saveBtn) {
+    saveBtn.textContent = isFav ? "Saved" : "❤ Save";
+  }
+
+  showScreen("restaurant");
+}
+
+function toggleRestaurantFavorite() {
+  if (!currentPromo) return;
+
+  const key = getPromoKey(currentPromo);
+  const btn = document.getElementById("restaurant-save-btn");
+
+  if (favoriteKeys.has(key)) {
+    favoriteKeys.delete(key);
+    if (btn) btn.textContent = "❤ Save";
+    showToast("Removed from favorites.");
+  } else {
+    favoriteKeys.add(key);
+    if (btn) btn.textContent = "Saved";
+    showToast("Added to favorites ❤️");
+  }
+
+  renderFavorites();
+  // refresh hearts on cards too
+  renderPromos();
+}
+
+    function setFavoriteForPromo(promo, shouldFav) {
+      const key = getPromoKey(promo);
+      const currentlyFav = favoriteKeys.has(key);
+
+      if (shouldFav === currentlyFav) return;
+
+      // Make sure saved is numeric
+      promo.saved = parseSaved(promo.saved);
+
+      if (shouldFav) {
+        favoriteKeys.add(key);
+        promo.saved = (promo.saved || 0) + 1;
+      } else {
+        favoriteKeys.delete(key);
+        promo.saved = Math.max(0, (promo.saved || 0) - 1);
+      }
+
+      renderFavorites();
+      renderPromos();
     }
 
+    function toggleFavorite(event, index) {
+      event.stopPropagation(); // don't open the detail page
+      const promo = promos[index];
+      const key = getPromoKey(promo);
+      const shouldFav = !favoriteKeys.has(key);
+
+      setFavoriteForPromo(promo, shouldFav);
+      showToast(shouldFav ? "Added to favorites ❤️" : "Removed from favorites.");
+
+      // If detail screen is open for this promo, sync its button text
+      if (currentPromo && getPromoKey(currentPromo) === key) {
+        const btn = document.getElementById("restaurant-save-btn");
+        if (btn) btn.textContent = shouldFav ? "Saved" : "❤ Save";
+      }
+    }
+
+    function toggleRestaurantFavorite() {
+      if (!currentPromo) return;
+
+      const promo = currentPromo;
+      const key = getPromoKey(promo);
+      const shouldFav = !favoriteKeys.has(key);
+
+      setFavoriteForPromo(promo, shouldFav);
+      const btn = document.getElementById("restaurant-save-btn");
+      if (btn) btn.textContent = shouldFav ? "Saved" : "❤ Save";
+
+      showToast(shouldFav ? "Added to favorites ❤️" : "Removed from favorites.");
+    }
+
+    function renderFavorites() {
+      if (!favoritesListEl) return;
+
+      favoritesListEl.innerHTML = "";
+
+      const favPromos = promos.filter((p) => favoriteKeys.has(getPromoKey(p)));
+
+      if (!favPromos.length) {
+        if (favoritesEmptyEl) {
+          favoritesEmptyEl.style.display = "block";
+          favoritesListEl.appendChild(favoritesEmptyEl);
+        }
+        return;
+      }
+
+      if (favoritesEmptyEl) {
+        favoritesEmptyEl.style.display = "none";
+      }
+
+      favPromos.forEach((promo) => {
+        const card = document.createElement("div");
+        card.className = "queue-card";
+        card.style.cursor = "pointer";
+        card.innerHTML = `
+          <div style="font-weight:600;margin-bottom:2px;">${promo.restaurant}</div>
+          <div style="font-size:12px;color:#777;margin-bottom:4px;">${promo.title}</div>
+          <div class="tag">❤️ Favorite</div>
+        `;
+
+        const promoIndex = promos.indexOf(promo);
+        card.addEventListener("click", () => {
+          if (promoIndex >= 0) {
+            openPromoDetail(promoIndex);
+          }
+        });
+
+        favoritesListEl.appendChild(card);
+      });
+    }
+
+    function openFavorites() {
+      showScreen("favorites");
+      renderFavorites();
+    }
+
+    function reportPromo(event, index) {
+      event.stopPropagation(); // don't open the detail page
+      const promo = promos[index];
+      showToast(`Report received for "${promo.title}". (dummy)`);
+    }
+
+    function reportCurrentPromo() {
+      if (!currentPromo) {
+        showToast("Report sent for this deal. (dummy)");
+      } else {
+        showToast(`Report sent for "${currentPromo.title}". (dummy)`);
+      }
+    }
+
+
+
     // ----- Queue logic -----
-    function joinQueue() {
-      queueJoined = true;
+    function renderQueues() {
+      if (!queueListEl) return;
+
+      if (!activeQueues.length) {
+        queueEmptyEl.style.display = "block";
+        queueActiveEl.style.display = "none";
+        profileQueueCountEl.textContent = "0";
+        return;
+      }
+
       queueEmptyEl.style.display = "none";
       queueActiveEl.style.display = "block";
-      profileQueueCountEl.textContent = "1";
-      showToast("✅ You joined the queue at Sushi Nyaman!");
+      profileQueueCountEl.textContent = String(activeQueues.length);
+
+      queueListEl.innerHTML = "";
+
+      activeQueues.forEach((q, index) => {
+        const card = document.createElement("div");
+        card.className = "queue-card";
+        card.innerHTML = `
+          <div class="queue-top-row">
+            <div class="queue-position">${q.number}</div>
+            <div>
+              <div style="font-weight:600;">${q.restaurantName}</div>
+              <div style="font-size:12px;color:#777;">${q.location}</div>
+              <div class="tag">Online queue</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#777;margin-bottom:6px;">
+            <span style="display:block;margin-bottom:4px;">${q.title}</span>
+            Estimated waiting time: <span>${q.estimate}</span>
+          </div>
+          <button class="secondary-btn">Cancel queue</button>
+        `;
+
+        const btn = card.querySelector("button");
+        btn.addEventListener("click", () => cancelQueue(index));
+
+        queueListEl.appendChild(card);
+      });
+    }
+
+    function joinQueueFromCurrent() {
+      if (!currentQueue) return;
+
+      // Use restaurant+title as unique key to avoid duplicate queues
+      const key = currentQueue.restaurant + " | " + currentQueue.title;
+      const exists = activeQueues.some((q) => q.key === key);
+
+      if (exists) {
+        showToast("You’re already in this queue.");
+        showScreen("queue");
+        return;
+      }
+
+      activeQueues.push({
+        ...currentQueue,
+        key,
+      });
+
+      renderQueues();
+
+      showToast(
+        `✅ You joined the queue at ${
+          currentQueue.restaurantName || "this restaurant"
+        }!`
+      );
+
       showScreen("queue");
     }
 
-    function cancelQueue() {
-      queueJoined = false;
-      queueEmptyEl.style.display = "block";
-      queueActiveEl.style.display = "none";
-      profileQueueCountEl.textContent = "0";
+    function joinQueue() {
+      let restaurantName = "Sushi Nyaman";
+      let location = "Senopati, Jakarta";
+      let title = "Best Deal Today";
+
+      if (currentPromo) {
+        const parts = currentPromo.restaurant.split(" - ");
+        restaurantName = parts[0] || currentPromo.restaurant;
+        location = parts[1] ? `${parts[1]}` : "Jakarta";
+        title = currentPromo.title;
+      }
+
+      currentQueue = {
+        restaurant: `${restaurantName} - ${location}`,
+        restaurantName,
+        title,
+        location,
+        estimate: "± 15 minutes",
+        number: "#7", // dummy number for prototype
+      };
+
+      joinQueueFromCurrent();
+    }
+
+    function cancelQueue(index) {
+      activeQueues.splice(index, 1);
+      renderQueues();
       showToast("Your queue has been cancelled.");
     }
+
+
 
     // ----- Upload promo (restaurant) -----
     function submitPromo() {
@@ -1573,7 +2008,9 @@
 
     // Initial setup
     updateNavForRole();
+    updateProfileForRole();
     renderPromos();
+    renderQueues();
   </script>
 </body>
 </html>
